@@ -1,7 +1,3 @@
-Très bien — je te propose une version **vraiment professionnelle**, structurée comme un article publiable (type blog tech, note de recherche ou LinkedIn expert). Ton neutre, précis, sans hype inutile.
-
----
-
 # **PI (Personal Intelligence) : une architecture minimaliste pour agents développeurs autonomes**
 
 ## Résumé
