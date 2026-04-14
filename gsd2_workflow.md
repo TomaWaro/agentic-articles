@@ -158,28 +158,51 @@ Des commandes permettent d'interagir avec le système :
 
 ## Token optimisation
 
-L’un des apports majeurs de GSD-2 par rapport aux approches classiques d’agents est sa gestion proactive du coût et du contexte. Là où la plupart des systèmes subissent le problème du “context rot” ou explosent en tokens, GSD-2 introduit une stratégie coordonnée qui permet de réduire drastiquement la consommation tout en maintenant la qualité.
+L’un des apports les plus structurants de GSD-2 est sa manière de traiter les tokens comme une ressource stratégique. Là où beaucoup d’agents se contentent d’empiler du contexte jusqu’à atteindre les limites du modèle, GSD-2 introduit une approche beaucoup plus disciplinée : chaque token envoyé doit être justifié.
 
-Concrètement, le système de token optimisation repose sur trois piliers complémentaires : les token profiles, la compression de contexte et le routage dynamique basé sur la complexité des tâches.
+Cette logique repose sur un mécanisme central : les **token profiles**.  
+Plutôt que de configurer manuellement chaque paramètre du système, on choisit un profil, et GSD-2 adapte automatiquement son comportement — modèles utilisés, quantité de contexte injectée, phases exécutées, etc.
 
-Le concept central est celui de token profile. Plutôt que de régler manuellement chaque paramètre (modèle, phases, taille du contexte…), GSD propose un simple levier de configuration qui orchestre automatiquement l’ensemble. Ce profil va déterminer quels modèles sont utilisés, quelles étapes du workflow sont exécutées ou ignorées, et surtout combien de contexte est injecté dans chaque appel au modèle.
+Voici les trois profils principaux :
 
-Trois profils principaux structurent cette logique.
+| Profil      | Objectif principal        | Contexte envoyé                        | Phases exécutées                     | Cas d’usage typiques                         |
+|-------------|--------------------------|----------------------------------------|--------------------------------------|----------------------------------------------|
+| **budget**  | Minimiser le coût        | Très réduit (résumés uniquement)       | Phases essentielles uniquement       | Itérations rapides, tests, exploration       |
+| **balanced**| Équilibre coût / qualité | Modéré (résumés + éléments clés)       | La plupart des phases                | Usage quotidien, développement standard      |
+| **quality** | Maximiser la qualité     | Complet (historique étendu)            | Toutes les phases                    | Tâches complexes, refactoring profond        |
 
-Le mode budget pousse l’optimisation au maximum. Il réduit agressivement le contexte, supprime certaines phases comme la recherche intermédiaire, et privilégie des modèles plus légers. C’est le mode idéal pour itérer rapidement sur un projet déjà compris, ou pour explorer des idées à faible coût.
+Ce tableau résume une idée importante : GSD-2 ne cherche pas à être “optimal” dans l’absolu, mais à être **adaptatif** selon le contexte d’utilisation.
 
-Le mode balanced, activé par défaut, représente un compromis intelligent. Il conserve les étapes importantes du workflow tout en éliminant celles dont le retour sur investissement est faible. Le contexte reste suffisamment riche pour produire des résultats fiables, sans tomber dans l’excès.
+### Une compression de contexte contrôlée
 
-Enfin, le mode quality adopte l’approche inverse : aucune compression, aucune simplification. Tout le contexte est injecté, toutes les phases sont exécutées. Ce mode est particulièrement adapté aux tâches complexes, aux refactorings profonds ou aux projets critiques où chaque détail compte.
+Derrière ces profils se cache un mécanisme essentiel : la **sélection et compression du contexte**.
 
-Cette logique est renforcée par un second mécanisme : la compression de contexte. Selon le profil choisi, GSD va décider de ne transmettre que l’essentiel (plan, résumés récents) ou au contraire d’inclure l’intégralité des artefacts (décisions, exigences, historique complet).
-L’idée est simple : envoyer moins d’information… mais mieux sélectionnée.
+Plutôt que de transmettre tout l’historique brut au modèle, GSD-2 reconstruit un contexte pertinent à chaque étape. Cela inclut typiquement :
 
-Enfin, GSD ajoute une couche d’intelligence avec le complexity-based routing. Chaque tâche est automatiquement analysée (nombre d’étapes, fichiers impliqués, nature du travail) puis routée vers le bon niveau de modèle. Une correction triviale n’utilise pas les mêmes ressources qu’une refonte d’architecture.
+- un résumé des décisions précédentes  
+- le plan courant  
+- les éléments directement liés à la tâche en cours  
 
-Résultat : une réduction typique de 40 à 60 % des tokens consommés, sans perte notable de qualité dans la majorité des cas.
+En mode *budget*, cette reconstruction est très agressive : seuls les éléments critiques sont conservés.  
+En mode *quality*, au contraire, le système conserve une vision beaucoup plus large du projet.
 
-Ce n’est pas simplement une optimisation technique, c’est un changement de paradigme : le coût devient une variable pilotée par le système, et non plus une contrainte subie.
+Cette approche permet d’éviter un problème classique des agents : plus le contexte grandit, plus il devient… inutile.
+
+### Routage intelligent des tâches
+
+L’optimisation ne s’arrête pas au contexte. GSD-2 ajuste également **quel modèle utiliser** en fonction de la tâche.
+
+Une modification triviale (renommer une variable, corriger une typo) ne nécessite pas le même niveau de raisonnement qu’une refonte d’architecture. Le système détecte cette complexité et adapte automatiquement :
+
+- le modèle appelé  
+- la profondeur du raisonnement  
+- et le volume de contexte nécessaire  
+
+On évite ainsi deux écueils fréquents :
+
+- surconsommer des tokens pour des tâches simples  
+- sous-dimensionner les tâches complexes  
+
 
 ------------------------------------------------------------------------
 
